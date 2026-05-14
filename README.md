@@ -2,25 +2,11 @@
 
 [![CI](https://github.com/lbarasti/speakeasy/actions/workflows/ci.yml/badge.svg)](https://github.com/lbarasti/speakeasy/actions/workflows/ci.yml)
 
-A minimal text-to-speech notification service. Speaks alerts, announces Claude Code permission requests, and shuts up when you press a key.
+> Running an AI coding agent, a long build, or a deploy? **Let a friendly voice notify you when a workflow needs your attention.**
 
-```
-                        ┌───────────────────────┐
-                        │   speakeasy (Python)   │
-                        │       :8300            │
-                        │                        │
- POST /notify ─────────>│  ┌─────────────────┐   │
- { message: "..." }     │  │   speaker.py    │   │
-                        │  │                 │   │
- POST /permission ─────>│  │ tts.py ─────┐   │   │
- { tool_name, ... }     │  │  Kokoro MLX │   │   │
-                        │  │             v   │   │
-                        │  │ playback.py ────────>   afplay (macOS)
-                        │  └─────────────────┘   │
-                        │                        │
-             stdin ────>│  any key = interrupt   │
-                        └───────────────────────┘
-```
+Speakeasy is a local TTS server for macOS that any tool, script, or agent can call with a single `curl`.
+
+📢 It speaks notifications out loud so you can step away without missing a thing.
 
 ## Quick start
 
@@ -37,9 +23,8 @@ curl -X POST localhost:8300/notify \
 ## Requirements
 
 - [uv](https://docs.astral.sh/uv/) (Python package manager)
-- Python 3.10–3.12
-- macOS (uses `afplay` for audio playback)
-- Optional: `ANTHROPIC_API_KEY` for LLM-powered permission summaries
+- Python 3.10–3.13
+- macOS with Apple Silicon
 
 ## Usage
 
@@ -69,16 +54,6 @@ uv run speakeasy --personality nicola "Ciao, come stai?"
 uv run speakeasy --list
 ```
 
-## Tests
-
-Run the test suite with:
-
-```bash
-uv run pytest
-```
-
-The tests mock TTS model loading, Anthropic calls, and audio playback, so they should run quickly without downloading models or playing sound.
-
 ## API
 
 ### `POST /notify`
@@ -91,102 +66,82 @@ Speak a message aloud.
 
 Returns `{ "status": "ok" }` after playback completes.
 
-### `POST /permission`
+### Claude Code integration
 
-Handle a Claude Code permission hook. Summarises the request using an LLM (or a static template if no API key is set), speaks it aloud, and returns `"ask"` so the user decides in the terminal.
-
-```json
-{
-  "session_id": "abc",
-  "cwd": "/Users/me/code/myproject",
-  "hook_event_name": "PermissionRequest",
-  "tool_name": "Bash",
-  "tool_input": { "command": "rm -rf dist" }
-}
-```
-
-Returns:
-```json
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PermissionRequest",
-    "decision": { "behavior": "ask" }
-  }
-}
-```
-
-### `GET /health`
-
-Returns `{ "status": "ok" }`.
-
-## Voices
-
-Voice configs live in the `personalities/` folder as markdown files:
-
-```markdown
-# Voice
-
-## Name
-Nicola
-
-## Speaker
-im_nicola
-
-## Language
-italian
-
-## Speed
-1.1
-```
-
-| Field | Purpose |
-|---|---|
-| **Name** | Display name, shown at startup |
-| **Speaker** | Kokoro voice ID — the prefix determines language and gender (see below) |
-| **Language** | For English voices (`af/am/bf/bm`), tunes the espeak pronunciation fallback for unknown words. Non-English voices use their own phonemizer. |
-| **Speed** | Playback speed multiplier (1.0 = normal) |
-
-### Speaker prefixes
-
-| Prefix | Language | Gender |
-|---|---|---|
-| `af` / `am` | American English | female / male |
-| `bf` / `bm` | British English | female / male |
-| `ef` / `em` | Spanish | female / male |
-| `ff` | French | female |
-| `hf` / `hm` | Hindi | female / male |
-| `if` / `im` | Italian | female / male |
-| `jf` / `jm` | Japanese | female / male |
-| `pf` / `pm` | Portuguese | female / male |
-| `zf` / `zm` | Chinese | female / male |
-
-Run `uv run speakeasy --voices` to list all available voice IDs.
-
-### Included voices
-
-| Name | Voice ID | Language |
-|---|---|---|
-| `default` | `am_adam` | American English |
-| `laura` | `bf_emma` | British English |
-| `nicola` | `im_nicola` | Italian |
-
-## Keypress interrupt
-
-While audio is playing, press any key to stop it immediately. `Ctrl-C` exits the app.
-
-## Claude Code permission hook
-
-Add to your Claude Code hooks config to have speakeasy announce permission requests:
+Add this to your Claude Code hooks config and speakeasy will announce every permission request:
 
 ```json
 {
   "hooks": {
     "PermissionRequest": [
       {
-        "type": "command",
-        "command": "curl -s -X POST http://localhost:8300/permission -H 'Content-Type: application/json' -d \"$(cat)\""
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://localhost:8300/permission",
+            "timeout": 60
+          }
+        ]
       }
     ]
   }
 }
 ```
+
+> [!TIP]
+> Set `ANTHROPIC_API_KEY` for LLM-powered summaries of what the tool is about to do. Without it, you get a simpler static template.
+
+## Voices
+
+Voice configs live in the `personalities/` folder as markdown files. You'll find a few predefined ones and it's trivial to set up your own. The following options are supported:
+
+
+| Field        | Purpose                                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Name**     | Display name, shown at startup                                                                                                              |
+| **Speaker**  | Kokoro voice ID — the prefix determines language and gender (see below)                                                                     |
+| **Language** | For English voices (`af/am/bf/bm`), tunes the espeak pronunciation fallback for unknown words. Non-English voices use their own phonemizer. |
+| **Speed**    | Playback speed multiplier (1.0 = normal)                                                                                                    |
+
+
+Run `uv run speakeasy --voices` to list all available voice IDs.
+
+## Keypress interrupt
+
+While audio is playing, press any key to stop it immediately. `Ctrl-C` exits the app.
+
+## How it works
+
+```
+                        ┌───────────────────────┐
+                        │   speakeasy (Python)   │
+                        │       :8300            │
+                        │                        │
+ POST /notify ─────────>│  ┌─────────────────┐   │
+ { message: "..." }     │  │   speaker.py    │   │
+                        │  │                 │   │
+ POST /permission ─────>│  │ tts.py ─────┐   │   │
+ { tool_name, ... }     │  │  Kokoro MLX │   │   │
+                        │  │             v   │   │
+                        │  │ playback.py ────────>   afplay (macOS)
+                        │  └─────────────────┘   │
+                        │                        │
+             stdin ────>│  any key = interrupt   │
+                        └───────────────────────┘
+```
+
+## Tests
+
+```bash
+uv run pytest
+```
+
+The tests mock TTS model loading, Anthropic calls, and audio playback, so they run quickly without downloading models or playing sound.
+
+There is also an opt-in integration test that loads the real Kokoro model and verifies WAV generation. It is skipped by default and only runs on macOS:
+
+```bash
+SPEAKEASY_RUN_TTS_INTEGRATION=1 uv run pytest -m integration
+```
+
