@@ -67,6 +67,16 @@ uv run speakeasy --personality nicola "Ciao, come stai?"
 uv run speakeasy --list
 ```
 
+## Tests
+
+Run the test suite with:
+
+```bash
+uv run pytest
+```
+
+The tests mock TTS model loading, Anthropic calls, and audio playback, so they should run quickly without downloading models or playing sound.
+
 ## API
 
 ### `POST /notify`
