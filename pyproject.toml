@@ -1,0 +1,20 @@
+[project]
+name = "speakeasy"
+version = "0.1.0"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "kokoro-mlx>=0.1.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "numpy",
+    "anthropic>=0.40.0",
+    "rich>=13.0.0",
+    "markdown-it-py>=3.0.0",
+    "huggingface-hub>=0.20.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["speakeasy*"]
+
+[project.scripts]
+speakeasy = "speakeasy.__main__:main"
