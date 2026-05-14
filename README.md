@@ -1,5 +1,7 @@
 # speakeasy
 
+[![CI](https://github.com/lbarasti/speakeasy/actions/workflows/ci.yml/badge.svg)](https://github.com/lbarasti/speakeasy/actions/workflows/ci.yml)
+
 A minimal text-to-speech notification service. Speaks alerts, announces Claude Code permission requests, and shuts up when you press a key.
 
 ```

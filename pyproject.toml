@@ -1,9 +1,13 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "speakeasy"
 version = "0.1.0"
 requires-python = ">=3.10,<3.13"
 dependencies = [
-    "kokoro-mlx>=0.1.0",
+    "kokoro-mlx>=0.1.0; sys_platform == 'darwin'",
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.34.0",
     "numpy",
