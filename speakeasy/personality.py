@@ -62,7 +62,7 @@ def list_personalities(personalities_dir: str) -> list[str]:
 
 def resolve_personality(name: str | None, personalities_dir: str) -> str:
     if name is None:
-        name = os.environ.get("PERSONALITY", "default")
+        name = os.environ.get("PERSONALITY", "laura")
 
     # Absolute or relative path
     if "/" in name or name.endswith(".md"):

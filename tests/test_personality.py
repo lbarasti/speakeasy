@@ -75,6 +75,13 @@ def test_resolve_personality_uses_environment_default(
     assert personality.resolve_personality(None, str(tmp_path)) == str(path)
 
 
+def test_resolve_personality_uses_laura_by_default(tmp_path: Path) -> None:
+    path = tmp_path / "laura.md"
+    path.write_text("", encoding="utf-8")
+
+    assert personality.resolve_personality(None, str(tmp_path)) == str(path)
+
+
 def test_resolve_personality_accepts_direct_paths(tmp_path: Path) -> None:
     path = tmp_path / "custom.md"
 

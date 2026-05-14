@@ -1,6 +1,9 @@
 # speakeasy
 
 [![CI](https://github.com/lbarasti/speakeasy/actions/workflows/ci.yml/badge.svg)](https://github.com/lbarasti/speakeasy/actions/workflows/ci.yml)
+![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)
+![Python](https://img.shields.io/badge/python-3.10--3.12-blue)
+![License](https://img.shields.io/github/license/lbarasti/speakeasy)
 
 > Running an AI coding agent, a long build, or a deploy? **Let a friendly voice notify you when a workflow needs your attention.**
 
@@ -20,10 +23,12 @@ curl -X POST localhost:8300/notify \
   -d '{"message": "Hello from speakeasy"}'
 ```
 
+[Listen to the sample notification](https://raw.githubusercontent.com/lbarasti/speakeasy/main/assets/hello-from-speakeasy.mp3)
+
 ## Requirements
 
 - [uv](https://docs.astral.sh/uv/) (Python package manager)
-- Python 3.10–3.13
+- Python 3.10–3.12
 - macOS with Apple Silicon
 
 ## Usage
@@ -35,7 +40,7 @@ curl -X POST localhost:8300/notify \
 uv run speakeasy
 
 # Choose a voice
-uv run speakeasy --personality nicola
+uv run speakeasy --personality laura
 
 # Custom port
 uv run speakeasy --port 9000
@@ -46,9 +51,6 @@ uv run speakeasy --port 9000
 ```bash
 # Speak a message and exit
 uv run speakeasy "The deployment is complete"
-
-# With a specific voice
-uv run speakeasy --personality nicola "Ciao, come stai?"
 
 # List available voices
 uv run speakeasy --list
