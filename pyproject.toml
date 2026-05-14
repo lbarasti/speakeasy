@@ -23,6 +23,11 @@ dev = [
     "pytest>=8.0.0",
 ]
 
+[tool.pytest.ini_options]
+markers = [
+    "integration: tests that load real external models or use slower dependencies",
+]
+
 [tool.setuptools.packages.find]
 include = ["speakeasy*"]
 
