@@ -16,7 +16,7 @@ def main() -> None:
     parser.add_argument(
         "--personality",
         default=None,
-        help="Voice name or path (default: default)",
+        help="Voice name or path (default: laura)",
     )
     parser.add_argument(
         "--port",

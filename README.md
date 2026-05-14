@@ -6,6 +6,7 @@
 ![License](https://img.shields.io/github/license/lbarasti/speakeasy)
 
 > Running an AI coding agent, a long build, or a deploy? **Let a friendly voice notify you when a workflow needs your attention.**
+> <img src="assets/icon.svg" align="right" width="180"/>
 
 Speakeasy is a local TTS server for macOS that any tool, script, or agent can call with a single `curl`.
 
