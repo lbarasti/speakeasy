@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import sys
+
 from rich.console import Console
 from rich.text import Text
 
-console = Console(force_terminal=True)
+console = Console(file=sys.stderr, force_terminal=True)
 
 
 def info(msg: str) -> None:

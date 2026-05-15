@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 
 
 def _personalities_dir() -> str:
@@ -35,15 +36,21 @@ def main() -> None:
         help="List available Kokoro voice IDs and exit",
     )
     parser.add_argument(
+        "--stdout",
+        action="store_true",
+        help="Write synthesized WAV audio to stdout instead of playing it.",
+    )
+    parser.add_argument(
         "text",
         nargs="*",
-        help="Text to speak and exit (one-shot mode). If omitted, starts the server.",
+        help="Text to speak or synthesize. If omitted, starts the server.",
     )
 
     args = parser.parse_args()
     personalities_dir = _personalities_dir()
 
     from speakeasy.personality import list_personalities, load_personality, resolve_personality
+    text = " ".join(args.text).strip() if args.text else ""
 
     if args.list:
         from speakeasy.console import console
@@ -58,6 +65,9 @@ def main() -> None:
         console.print("Available voices:", ", ".join(list_voices()))
         return
 
+    if args.stdout and not text:
+        parser.error("--stdout requires text to synthesize")
+
     personality_path = resolve_personality(args.personality, personalities_dir)
     personality = load_personality(personality_path)
 
@@ -67,7 +77,21 @@ def main() -> None:
     from speakeasy.tts import load_model
     load_model()
 
-    text = " ".join(args.text).strip() if args.text else ""
+    if args.stdout:
+        from speakeasy.markdown import strip_markdown
+        from speakeasy.tts import synthesize
+
+        wav_data = synthesize(
+            text=strip_markdown(text),
+            speaker=personality.speaker,
+            speed=personality.speed,
+            language=personality.language,
+        )
+        try:
+            sys.stdout.buffer.write(wav_data)
+        except BrokenPipeError:
+            return
+        return
 
     if text:
         from speakeasy.speaker import speak

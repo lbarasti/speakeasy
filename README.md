@@ -37,25 +37,32 @@ curl -X POST localhost:8300/notify \
 ### Server mode
 
 ```bash
-# Start with default voice
-uv run speakeasy
-
-# Choose a voice
-uv run speakeasy --personality laura
-
-# Custom port
-uv run speakeasy --port 9000
+uv run speakeasy [options]
 ```
 
-### One-shot mode
+Options:
+- `--personality <name>`: choose your voice
+- `--port <port>`: pick the HTTP server port (default: `8300`)
+
+### CLI mode
 
 ```bash
 # Speak a message and exit
-uv run speakeasy "The deployment is complete"
-
-# List available voices
-uv run speakeasy --list
+uv run speakeasy [options] "<message>"
 ```
+
+Options:
+- `--personality <name>`: choose your voice
+- `--voices`: list voices and exit
+- `--stdout`: write WAV bytes to stdout instead of playing audio
+
+```bash
+uv run speakeasy --stdout "Hello from Speakeasy" > hello.wav
+uv run speakeasy --stdout "Hello from Speakeasy" | ffmpeg -i - hello.mp3
+```
+
+> [!NOTE]
+> Speakeasy writes status messages to stderr, so stdout stays clean for raw audio data.
 
 ## API
 
@@ -68,6 +75,32 @@ Speak a message aloud.
 ```
 
 Returns `{ "status": "ok" }` after playback completes.
+
+### `POST /tts`
+
+Generate WAV audio and return it in the response without playing it.
+
+```json
+{ "message": "CI passed for PR 42" }
+```
+
+Save the response to a file:
+
+```bash
+curl -X POST localhost:8300/tts \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Hello from Speakeasy"}' \
+  -o hello.wav
+```
+
+Or pipe the WAV response into another tool:
+
+```bash
+curl -s -X POST localhost:8300/tts \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "Hello from Speakeasy"}' \
+  | ffmpeg -i - hello.mp3
+```
 
 ### Claude Code integration
 
